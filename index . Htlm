@@ -1,0 +1,82 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Ferramenta de Análise de Roleta Avançada</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #111; color: #fff; padding: 20px; }
+    input, button { padding: 10px; font-size: 16px; margin-top: 10px; }
+    .output { margin-top: 20px; font-weight: bold; }
+    .box { background: #222; padding: 20px; border-radius: 12px; }
+  </style>
+</head>
+<body>
+  <h2>Análise de Roleta Avançada</h2>
+  <div class="box">
+    <label for="nums">Números recentes (separados por vírgula):</label><br>
+    <input id="nums" placeholder="Ex: 17, 20, 32, 1, 14, 0"><br>
+    <button onclick="analisar()">Analisar</button>
+    <div class="output" id="resultado"></div>
+  </div>  <script>
+    const vermelho = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+    const preto = [2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35];
+
+    function getCor(n) {
+      if (vermelho.includes(n)) return 'vermelho';
+      if (preto.includes(n)) return 'preto';
+      return 'zero';
+    }
+
+    function getColuna(n) {
+      if (n === 0) return 'zero';
+      return (n % 3 === 1) ? '1ª' : (n % 3 === 2) ? '2ª' : '3ª';
+    }
+
+    function getVizinho(n) {
+      return [(n-1+37)%37, n, (n+1)%37];
+    }
+
+    function analisar() {
+      const entrada = document.getElementById('nums').value;
+      const numeros = entrada.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+
+      if (numeros.length < 3) {
+        document.getElementById('resultado').textContent = 'Informe ao menos 3 números.';
+        return;
+      }
+
+      const analise = {
+        cores: { vermelho: 0, preto: 0, zero: 0 },
+        colunas: { '1ª': 0, '2ª': 0, '3ª': 0, zero: 0 },
+        alternancia: 0,
+        vizinhos: {}
+      };
+
+      for (let i = 0; i < numeros.length; i++) {
+        const cor = getCor(numeros[i]);
+        const col = getColuna(numeros[i]);
+        analise.cores[cor]++;
+        analise.colunas[col]++;
+
+        getVizinho(numeros[i]).forEach(v => {
+          analise.vizinhos[v] = (analise.vizinhos[v] || 0) + 1;
+        });
+
+        if (i > 0 && getCor(numeros[i]) !== getCor(numeros[i - 1])) {
+          analise.alternancia++;
+        }
+      }
+
+      const sugeridaCor = analise.cores.vermelho > analise.cores.preto ? 'preto' : 'vermelho';
+      const colunaMaisFrequente = Object.entries(analise.colunas).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+      const vizinhoTop = Object.entries(analise.vizinhos).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+
+      document.getElementById('resultado').innerHTML = `
+        <b>Cor sugerida:</b> ${sugeridaCor}<br>
+        <b>Coluna com mais ocorrências:</b> ${colunaMaisFrequente}<br>
+        <b>Alternâncias de cor:</b> ${analise.alternancia}<br>
+        <b>Número vizinho mais frequente:</b> ${vizinhoTop}
+      `;
+    }
+  </script></body>
+</html>
